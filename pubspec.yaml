@@ -1,0 +1,53 @@
+name: fittrack
+description: FitTrack - Fitness Tracking Application
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Supabase
+  supabase_flutter: ^2.12.1
+  
+  # Local Database
+  drift: ^2.32.1
+  sqlite3_flutter_libs: ^0.6.0+eol
+  path_provider: ^2.1.0
+  path: ^1.9.0
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # UI
+  pinput: ^3.0.0
+  fl_chart: ^0.65.0
+  image_picker: ^1.0.4
+  intl: ^0.18.1
+  cached_network_image: ^3.3.0
+  
+  # Utils
+  shared_preferences: ^2.2.0
+  connectivity_plus: ^5.0.0
+  equatable: ^2.0.5
+  uuid: ^4.0.0
+  
+  # Permissions
+  permission_handler: ^11.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  drift_dev: ^2.11.0
+  build_runner: ^2.4.6
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/foods.csv
+    - assets/images/
