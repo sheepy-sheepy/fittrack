@@ -42,12 +42,10 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         
         if (user != null && mounted) {
-          debugPrint('User status: ${user.status}');
-          debugPrint('User status index: ${user.status.toInt()}');
-          
+          // Проверяем статус в локальной БД
           switch (user.status) {
             case RegistrationStatus.emailNotVerified:
-              debugPrint('Redirecting to VerifyEmailScreen');
+              // Показываем экран подтверждения почты
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -56,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
               );
               break;
             case RegistrationStatus.onboardingNotCompleted:
-              debugPrint('Redirecting to OnboardingScreen');
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -65,7 +62,6 @@ class _LoginScreenState extends State<LoginScreen> {
               );
               break;
             case RegistrationStatus.fullyRegistered:
-              debugPrint('Redirecting to MainScreen');
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -78,6 +74,14 @@ class _LoginScreenState extends State<LoginScreen> {
           String errorMessage = 'Ошибка входа';
           if (e.toString().contains('email_not_confirmed')) {
             errorMessage = 'Email не подтвержден. Проверьте почту.';
+            // Даже при ошибке, пробуем показать экран подтверждения
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VerifyEmailScreen(email: _emailController.text.trim()),
+              ),
+            );
+            return;
           } else if (e.toString().contains('Invalid login credentials')) {
             errorMessage = 'Неверный email или пароль';
           } else {

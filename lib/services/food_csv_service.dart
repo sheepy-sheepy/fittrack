@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/food.dart';
-import 'package:flutter/foundation.dart';
 
 class FoodCsvService {
   Future<List<Food>> loadFoodsFromCsv() async {

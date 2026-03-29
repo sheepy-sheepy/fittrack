@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/body_measurement.dart' as app_measurement;
@@ -10,7 +9,7 @@ import '../../services/calculation_service.dart';
 import '../../widgets/custom_button.dart';
 
 class BodyParametersScreen extends StatefulWidget {
-  const BodyParametersScreen({Key? key}) : super(key: key);
+  const BodyParametersScreen({super.key});
   
   @override
   _BodyParametersScreenState createState() => _BodyParametersScreenState();
@@ -124,18 +123,6 @@ class _BodyParametersScreenState extends State<BodyParametersScreen> {
     try {
       final session = Supabase.instance.client.auth.currentSession;
       if (session != null) {
-        // Проверяем, вводились ли параметры сегодня
-        final existingMeasurement = await _localDb.measurementDao.getMeasurementByDate(
-          session.user.id,
-          DateTime.now(),
-        );
-        
-        if (existingMeasurement != null) {
-          _showError('Параметры на сегодня уже введены');
-          setState(() => _isSaving = false);
-          return;
-        }
-        
         final measurement = app_measurement.BodyMeasurement(
           id: const Uuid().v4(),
           userId: session.user.id,
@@ -180,11 +167,33 @@ class _BodyParametersScreenState extends State<BodyParametersScreen> {
     }
   }
   
+  double _calculateBodyFat() {
+    if (_profile == null) return 0;
+    
+    final neck = double.tryParse(_neckController.text);
+    final waist = double.tryParse(_waistController.text);
+    final hip = double.tryParse(_hipController.text);
+    
+    if (neck == null || waist == null || hip == null) return 0;
+    
+    final gender = _profile!.gender == 'male' ? Gender.male : Gender.female;
+    
+    return _calculationService.calculateBodyFatPercentage(
+      gender,
+      _profile!.height,
+      neck,
+      waist,
+      hip,
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+    
+    final bodyFat = _calculateBodyFat();
     
     return Scaffold(
       body: SingleChildScrollView(
@@ -292,6 +301,34 @@ class _BodyParametersScreenState extends State<BodyParametersScreen> {
               enabled: !_hasMeasurementToday,
             ),
             
+            if (bodyFat > 0) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Процент жира:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '${bodyFat.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            
             const SizedBox(height: 24),
             
             if (!_hasMeasurementToday)
@@ -312,7 +349,7 @@ class _BodyParametersScreenState extends State<BodyParametersScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Параметры за сегодня',
+                      'Вчерашние параметры',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,

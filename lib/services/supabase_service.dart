@@ -20,9 +20,8 @@ class SupabaseService {
 
   Future<void> init() async {
     await Supabase.initialize(
-      url: 'https://xczngsovpkknjsbhpcen.supabase.co',
-      anonKey:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhjem5nc292cGtrbmpzYmhwY2VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NDc0MjksImV4cCI6MjA5MDAyMzQyOX0.kb_wKbLvbjulfYjCxg67vi0JjYxdQHUiyMhdS7fTo4o',
+      url: 'https://your-project.supabase.co',
+      anonKey: 'your-anon-key',
     );
   }
 

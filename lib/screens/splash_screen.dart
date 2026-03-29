@@ -9,7 +9,7 @@ import 'auth/verify_email_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
+  
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -20,14 +20,14 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _checkAuthStatus();
   }
-
+  
   Future<void> _checkAuthStatus() async {
     await Future.delayed(const Duration(seconds: 2));
-
+    
     if (!mounted) return;
-
+    
     final session = Supabase.instance.client.auth.currentSession;
-
+    
     if (session == null) {
       if (mounted) {
         Navigator.pushReplacement(
@@ -37,13 +37,10 @@ class _SplashScreenState extends State<SplashScreen> {
       }
       return;
     }
-
+    
     final localDb = LocalDatabase();
     final user = await localDb.userDao.getUser(session.user.id);
-
-    debugPrint('SplashScreen - User status: ${user?.status}');
-    debugPrint('SplashScreen - User status index: ${user?.status.toInt()}');
-
+    
     if (user == null) {
       if (mounted) {
         Navigator.pushReplacement(
@@ -53,12 +50,11 @@ class _SplashScreenState extends State<SplashScreen> {
       }
       return;
     }
-
+    
     if (!mounted) return;
-
+    
     switch (user.status) {
       case RegistrationStatus.emailNotVerified:
-        debugPrint('SplashScreen - Redirecting to VerifyEmailScreen');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -67,7 +63,6 @@ class _SplashScreenState extends State<SplashScreen> {
         );
         break;
       case RegistrationStatus.onboardingNotCompleted:
-        debugPrint('SplashScreen - Redirecting to OnboardingScreen');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -76,7 +71,6 @@ class _SplashScreenState extends State<SplashScreen> {
         );
         break;
       case RegistrationStatus.fullyRegistered:
-        debugPrint('SplashScreen - Redirecting to MainScreen');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -84,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
         break;
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

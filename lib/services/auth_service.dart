@@ -48,49 +48,29 @@ class AuthService {
       if (response.user != null) {
         final userId = response.user!.id;
         
-        // Получаем статус из Supabase (это Map<String, dynamic>)
-        final supabaseUser = await _supabase.getUser(userId);
-        RegistrationStatus actualStatus;
-        
-        if (supabaseUser != null) {
-          // Извлекаем статус из мапы
-          final statusValue = supabaseUser['status'] as int?;
-          actualStatus = RegistrationStatus.fromInt(statusValue ?? 0);
-          debugPrint('Status from Supabase: $actualStatus (value: $statusValue)');
-        } else {
-          // Если пользователя нет в Supabase, определяем статус по подтверждению email
-          actualStatus = response.user!.emailConfirmedAt != null 
-              ? RegistrationStatus.onboardingNotCompleted 
-              : RegistrationStatus.emailNotVerified;
-          debugPrint('Status determined: $actualStatus');
-        }
-        
         // Проверяем, существует ли пользователь в локальной БД
         var localUser = await _localDb.userDao.getUser(userId);
         
         if (localUser == null) {
-          // Создаем пользователя в локальной БД с правильным статусом
+          // Создаем пользователя в локальной БД
           localUser = app_models.User(
             id: userId,
-            email: response.user!.email ?? email,
-            status: actualStatus,
+            email: email,
+            status: response.user!.emailConfirmedAt != null 
+                ? RegistrationStatus.onboardingNotCompleted 
+                : RegistrationStatus.emailNotVerified,
             createdAt: DateTime.now(),
           );
           await _localDb.userDao.insertUser(localUser);
           
           // Создаем пользователя в Supabase таблице users
           await _supabase.saveUser(localUser);
-          
-          debugPrint('Created new local user with status: ${localUser.status}');
-        } else {
-          // Обновляем локального пользователя, если статус изменился
-          if (localUser.status != actualStatus) {
-            debugPrint('Updating local user status from ${localUser.status} to $actualStatus');
-            await _localDb.userDao.updateUserStatus(userId, actualStatus);
-            localUser = await _localDb.userDao.getUser(userId);
-          } else {
-            debugPrint('Local user status matches: ${localUser.status}');
-          }
+        } else if (response.user!.emailConfirmedAt != null && 
+                   localUser.status == RegistrationStatus.emailNotVerified) {
+          // Обновляем статус если email подтвержден
+          await _supabase.updateUserStatus(userId, RegistrationStatus.onboardingNotCompleted);
+          await _localDb.userDao.updateUserStatus(userId, RegistrationStatus.onboardingNotCompleted);
+          localUser = await _localDb.userDao.getUser(userId);
         }
         
         return localUser;

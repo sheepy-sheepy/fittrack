@@ -11,14 +11,12 @@ class MealDetailsScreen extends StatefulWidget {
   final String mealId;
   final app_meal.MealType mealType;
   final DateTime date;
-  final app_entry.MealEntry? entryToEdit;
 
   const MealDetailsScreen({
     super.key,
     required this.mealId,
     required this.mealType,
     required this.date,
-    this.entryToEdit,
   });
 
   @override
@@ -174,9 +172,9 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
 
                 await _localDb.mealDao.updateMealEntry(updatedEntry);
                 await _loadEntries();
-                if (mounted) {
-                  Navigator.pop(context,
-                      true); // Возвращаем true для обновления родительского экрана
+                // Используем dialogContext для навигации внутри диалога
+                if (mounted && dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
                 }
               }
             },
@@ -209,8 +207,6 @@ class _MealDetailsScreenState extends State<MealDetailsScreen> {
     if (confirm == true && mounted) {
       await _localDb.mealDao.deleteMealEntry(entry.id);
       await _loadEntries();
-      Navigator.pop(
-          context, true); // Возвращаем true для обновления родительского экрана
     }
   }
 

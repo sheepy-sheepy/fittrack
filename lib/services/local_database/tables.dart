@@ -24,7 +24,7 @@ class UserProfiles extends Table {
   DateTimeColumn get birthDate => dateTime()();
   IntColumn get deficit => integer().withDefault(const Constant(300))();
   DateTimeColumn get updatedAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {userId};
 }
@@ -37,13 +37,13 @@ class BodyMeasurements extends Table {
   RealColumn get neck => real()();
   RealColumn get waist => real()();
   RealColumn get hip => real()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('user_date_idx', 'userId, date'),
-      ];
+    Index('user_date_idx', 'userId, date'),
+  ];
 }
 
 class Foods extends Table {
@@ -56,14 +56,14 @@ class Foods extends Table {
   BoolColumn get isCustom => boolean().withDefault(const Constant(false))();
   TextColumn get userId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('name_idx', 'name'),
-        Index('user_idx', 'userId'),
-      ];
+    Index('name_idx', 'name'),
+    Index('user_idx', 'userId'),
+  ];
 }
 
 class Recipes extends Table {
@@ -75,13 +75,13 @@ class Recipes extends Table {
   RealColumn get totalFats => real()();
   RealColumn get totalCarbs => real()();
   DateTimeColumn get createdAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('user_idx', 'userId'),
-      ];
+    Index('user_idx', 'userId'),
+  ];
 }
 
 class RecipeIngredients extends Table {
@@ -94,13 +94,13 @@ class RecipeIngredients extends Table {
   RealColumn get proteins => real()();
   RealColumn get fats => real()();
   RealColumn get carbs => real()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('recipe_idx', 'recipeId'),
-      ];
+    Index('recipe_idx', 'recipeId'),
+  ];
 }
 
 class Meals extends Table {
@@ -109,13 +109,13 @@ class Meals extends Table {
   DateTimeColumn get date => dateTime()();
   TextColumn get type => text()();
   DateTimeColumn get createdAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('user_date_idx', 'userId, date'),
-      ];
+    Index('user_date_idx', 'userId, date'),
+  ];
 }
 
 class MealEntries extends Table {
@@ -130,13 +130,13 @@ class MealEntries extends Table {
   RealColumn get fats => real()();
   RealColumn get carbs => real()();
   DateTimeColumn get createdAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('meal_idx', 'mealId'),
-      ];
+    Index('meal_idx', 'mealId'),
+  ];
 }
 
 class WaterEntries extends Table {
@@ -145,13 +145,13 @@ class WaterEntries extends Table {
   DateTimeColumn get date => dateTime()();
   RealColumn get amount => real()();
   DateTimeColumn get updatedAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('user_date_idx', 'userId, date'),
-      ];
+    Index('user_date_idx', 'userId, date'),
+  ];
 }
 
 class PhotoEntries extends Table {
@@ -163,11 +163,11 @@ class PhotoEntries extends Table {
   TextColumn get photo3Path => text()();
   TextColumn get photo4Path => text()();
   DateTimeColumn get createdAt => dateTime()();
-
+  
   @override
   Set<Column> get primaryKey => {id};
-
+  
   List<Index> get indexes => [
-        Index('user_date_idx', 'userId, date'),
-      ];
+    Index('user_date_idx', 'userId, date'),
+  ];
 }

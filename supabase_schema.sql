@@ -209,24 +209,17 @@ CREATE POLICY "Users can update own photo entries" ON photo_entries FOR UPDATE U
 
 
 
+
+
+
 -- Создаем политики для таблицы users
 DROP POLICY IF EXISTS "Users can insert own data" ON users;
-CREATE POLICY "Users can insert own data" ON users 
+CREATE POLICY "Users can insert own data" ON users
 FOR INSERT WITH CHECK (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can view own data" ON users;
-CREATE POLICY "Users can view own data" ON users 
-FOR SELECT USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update own data" ON users;
-CREATE POLICY "Users can update own data" ON users 
-FOR UPDATE USING (auth.uid() = id);
 
 -- Для таблицы user_profiles
 DROP POLICY IF EXISTS "Users can insert own profile" ON user_profiles;
-CREATE POLICY "Users can insert own profile" ON user_profiles 
-FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Убедитесь, что RLS включен
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;

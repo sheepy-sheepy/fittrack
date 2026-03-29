@@ -12,14 +12,14 @@ class AddMealScreen extends StatefulWidget {
   final DateTime date;
   final List<app_meal.Meal> existingMeals;
   final app_meal.MealType? preselectedType;
-
+  
   const AddMealScreen({
     super.key,
     required this.date,
     required this.existingMeals,
     this.preselectedType,
   });
-
+  
   @override
   _AddMealScreenState createState() => _AddMealScreenState();
 }
@@ -29,13 +29,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
   final List<app_entry.MealEntry> _entries = [];
   final LocalDatabase _localDb = LocalDatabase();
   bool _isSaving = false;
-
+  
   @override
   void initState() {
     super.initState();
     _selectedType = widget.preselectedType;
   }
-
+  
   Future<void> _addFood() async {
     final result = await Navigator.push(
       context,
@@ -47,12 +47,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
         ),
       ),
     );
-
+    
     if (result != null && mounted) {
       _showGramsDialog(result);
     }
   }
-
+  
   void _showGramsDialog(dynamic item) {
     final gramsController = TextEditingController(text: '100');
     String name = '';
@@ -60,7 +60,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
     double proteinsPer100 = 0;
     double fatsPer100 = 0;
     double carbsPer100 = 0;
-
+    
     if (item is app_food.Food) {
       name = item.name;
       caloriesPer100 = item.calories;
@@ -74,7 +74,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       fatsPer100 = item.totalFats / (item.totalWeight / 100);
       carbsPer100 = item.totalCarbs / (item.totalWeight / 100);
     }
-
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -123,17 +123,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
       ),
     );
   }
-
+  
   void _removeEntry(int index) {
     setState(() {
       _entries.removeAt(index);
     });
   }
-
+  
   void _editEntry(int index) {
     final entry = _entries[index];
     final gramsController = TextEditingController(text: entry.grams.toString());
-
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -176,7 +176,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       ),
     );
   }
-
+  
   Future<void> _saveMeal() async {
     if (_selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -184,54 +184,34 @@ class _AddMealScreenState extends State<AddMealScreen> {
       );
       return;
     }
-
+    
     if (_entries.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Добавьте хотя бы один продукт')),
       );
       return;
     }
-
+    
     setState(() => _isSaving = true);
-
+    
     try {
       final session = Supabase.instance.client.auth.currentSession;
       if (session != null) {
-        // Ищем существующий прием пищи с таким типом
-        var existingMeal = widget.existingMeals.firstWhere(
-          (m) => m.type == _selectedType,
-          orElse: () => app_meal.Meal(
-            id: '',
-            userId: '',
-            date: widget.date,
-            type: _selectedType!,
-            createdAt: DateTime.now(),
-          ),
+        final meal = app_meal.Meal(
+          id: const Uuid().v4(),
+          userId: session.user.id,
+          date: widget.date,
+          type: _selectedType!,
+          createdAt: DateTime.now(),
         );
-
-        String mealId;
-
-        if (existingMeal.id.isNotEmpty) {
-          // Используем существующий прием пищи
-          mealId = existingMeal.id;
-        } else {
-          // Создаем новый прием пищи
-          final meal = app_meal.Meal(
-            id: const Uuid().v4(),
-            userId: session.user.id,
-            date: widget.date,
-            type: _selectedType!,
-            createdAt: DateTime.now(),
-          );
-          await _localDb.mealDao.insertMeal(meal);
-          mealId = meal.id;
-        }
-
+        
+        await _localDb.mealDao.insertMeal(meal);
+        
         for (var entry in _entries) {
-          final entryWithMealId = entry.copyWith(mealId: mealId);
+          final entryWithMealId = entry.copyWith(mealId: meal.id);
           await _localDb.mealDao.insertMealEntry(entryWithMealId);
         }
-
+        
         if (mounted) {
           Navigator.pop(context, true);
         }
@@ -248,16 +228,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
       }
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    final totalCalories =
-        _entries.fold<double>(0, (sum, e) => sum + e.calories);
-    final totalProteins =
-        _entries.fold<double>(0, (sum, e) => sum + e.proteins);
+    final totalCalories = _entries.fold<double>(0, (sum, e) => sum + e.calories);
+    final totalProteins = _entries.fold<double>(0, (sum, e) => sum + e.proteins);
     final totalFats = _entries.fold<double>(0, (sum, e) => sum + e.fats);
     final totalCarbs = _entries.fold<double>(0, (sum, e) => sum + e.carbs);
-
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Добавить прием пищи'),
@@ -294,6 +272,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
               }).toList(),
             ),
           ),
+          
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ElevatedButton.icon(
@@ -305,7 +284,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
               ),
             ),
           ),
+          
           const SizedBox(height: 16),
+          
           Expanded(
             child: _entries.isEmpty
                 ? const Center(
@@ -336,8 +317,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           child: const Icon(Icons.delete, color: Colors.white),
                         ),
                         child: Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 4),
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           child: ListTile(
                             title: Text(entry.name),
                             subtitle: Text(
@@ -357,12 +337,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     },
                   ),
           ),
+          
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Column(
               children: [

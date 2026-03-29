@@ -6,6 +6,8 @@ class User extends Equatable {
   final String email;
   final RegistrationStatus status;
   final DateTime createdAt;
+  // Удаляем password_hash, так как Supabase хранит пароль
+  // final String? passwordHash;
   
   const User({
     required this.id,
