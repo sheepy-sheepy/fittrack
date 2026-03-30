@@ -20,8 +20,9 @@ class SupabaseService {
 
   Future<void> init() async {
     await Supabase.initialize(
-      url: 'https://your-project.supabase.co',
-      anonKey: 'your-anon-key',
+      url: 'https://bbbrdkpetfgzhaogkslj.supabase.co',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJiYnJka3BldGZnemhhb2drc2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDY4MzgsImV4cCI6MjA5MDMyMjgzOH0.JXS-AGKO-K7SFnLhykOEIYm3wxl-SA3sTJoHNk0v6IM',
     );
   }
 
@@ -29,9 +30,24 @@ class SupabaseService {
   Future<void> updateUserStatus(
       String userId, RegistrationStatus status) async {
     try {
-      await client
-          .from('users')
-          .update({'status': status.toInt()}).eq('id', userId);
+      // Проверяем, существует ли пользователь
+      final existingUser =
+          await client.from('users').select().eq('id', userId).maybeSingle();
+
+      if (existingUser != null) {
+        // Обновляем существующего пользователя
+        await client
+            .from('users')
+            .update({'status': status.toInt()}).eq('id', userId);
+      } else {
+        // Создаем нового пользователя (только если его нет)
+        await client.from('users').insert({
+          'id': userId,
+          'email': '',
+          'status': status.toInt(),
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
     } catch (e) {
       debugPrint('Error updating user status: $e');
       rethrow;

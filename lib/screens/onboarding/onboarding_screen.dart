@@ -41,7 +41,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   
   double? _bodyFatPercentage;
   
-  // Функция для форматирования даты без использования DateFormat
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
@@ -54,7 +53,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       final hip = double.tryParse(_hipController.text);
       
       if (height != null && neck != null && waist != null && hip != null && height > 0 && neck > 0 && waist > 0 && hip > 0) {
-        // Проверяем, что waist > neck для мужчин
         if (_gender == 'male' && waist <= neck) {
           setState(() {
             _bodyFatPercentage = null;
@@ -62,7 +60,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           return;
         }
         
-        // Проверяем, что waist + hip > neck для женщин
         if (_gender == 'female' && waist + hip <= neck) {
           setState(() {
             _bodyFatPercentage = null;
@@ -73,18 +70,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         double bodyFat;
         
         if (_gender == 'male') {
-          // Формула для мужчин: 86.010 * log10(waist - neck) - 70.041 * log10(height) + 36.76
           final logWaistNeck = log10(waist - neck);
           final logHeight = log10(height);
           bodyFat = 86.010 * logWaistNeck - 70.041 * logHeight + 36.76;
         } else {
-          // Формула для женщин: 163.205 * log10(waist + hip - neck) - 97.684 * log10(height) - 78.387
           final logWaistHipNeck = log10(waist + hip - neck);
           final logHeight = log10(height);
           bodyFat = 163.205 * logWaistHipNeck - 97.684 * logHeight - 78.387;
         }
         
-        // Ограничиваем значение от 0 до 100
         bodyFat = bodyFat.clamp(0.0, 100.0);
         
         setState(() {
@@ -121,27 +115,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         final waist = double.parse(_waistController.text);
         final hip = double.parse(_hipController.text);
         
-        // Проверяем, существует ли пользователь в Supabase
-        try {
-          final existingUser = await _supabase.client
-              .from('users')
-              .select()
-              .eq('id', widget.userId)
-              .maybeSingle();
-          
-          if (existingUser == null) {
-            // Создаем пользователя в Supabase
-            await _supabase.client.from('users').insert({
-              'id': widget.userId,
-              'email': '', // Email будет обновлен позже
-              'status': RegistrationStatus.onboardingNotCompleted.toInt(),
-              'created_at': DateTime.now().toIso8601String(),
-            });
-          }
-        } catch (e) {
-          debugPrint('Error checking/creating user: $e');
-          // Если ошибка, продолжаем - возможно пользователь уже существует
-        }
+        // НЕ создаем пользователя в таблице users - он уже существует
+        // Пользователь уже был создан при регистрации в Supabase Auth
         
         final profile = app_profile.UserProfile(
           userId: widget.userId,
@@ -160,17 +135,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         );
         
         // Сохраняем профиль в Supabase
-        try {
-          await _supabase.saveUserProfile(profile);
-        } catch (e) {
-          debugPrint('Error saving profile to Supabase: $e');
-          rethrow;
-        }
+        await _supabase.saveUserProfile(profile);
         
         // Сохраняем в локальную базу данных
         await _localDb.profileDao.insertProfile(profile);
         
-        // Обновляем статус пользователя в Supabase
+        // Обновляем статус пользователя в Supabase (только статус, не создаем заново)
         await _supabase.updateUserStatus(
           widget.userId,
           RegistrationStatus.fullyRegistered,
@@ -182,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           RegistrationStatus.fullyRegistered,
         );
         
-        // Сохраняем начальные параметры тела в body_measurements
+        // Сохраняем начальные параметры тела
         final measurement = app_measurement.BodyMeasurement(
           id: const Uuid().v4(),
           userId: widget.userId,
@@ -193,7 +163,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           hip: hip,
         );
         
-        // Сохраняем в локальную БД
         await _localDb.measurementDao.insertMeasurement(measurement);
         
         // Сохраняем в Supabase body_measurements
@@ -201,7 +170,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           await _supabase.saveBodyMeasurement(measurement);
         } catch (e) {
           debugPrint('Error saving body measurement to Supabase: $e');
-          // Не прерываем выполнение, если не сохранилось в Supabase
         }
         
         if (mounted) {
@@ -398,7 +366,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.cake),
                       title: const Text('Дата рождения'),
-                      subtitle: Text(_formatDate(_birthDate)), // Используем нашу функцию
+                      subtitle: Text(_formatDate(_birthDate)),
                       onTap: () async {
                         final date = await showDatePicker(
                           context: context,

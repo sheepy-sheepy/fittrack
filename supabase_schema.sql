@@ -208,18 +208,40 @@ CREATE POLICY "Users can update own photo entries" ON photo_entries FOR UPDATE U
 
 
 
+-- Обновите таблицу users, удалив password_hash
+ALTER TABLE users DROP COLUMN IF EXISTS password_hash;
+
+-- Если таблица только создается, используйте:
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email TEXT UNIQUE NOT NULL,
+    status INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
 
 
 
 
 -- Создаем политики для таблицы users
 DROP POLICY IF EXISTS "Users can insert own data" ON users;
-CREATE POLICY "Users can insert own data" ON users
+CREATE POLICY "Users can insert own data" ON users 
 FOR INSERT WITH CHECK (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can view own data" ON users;
+CREATE POLICY "Users can view own data" ON users 
+FOR SELECT USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update own data" ON users;
+CREATE POLICY "Users can update own data" ON users 
+FOR UPDATE USING (auth.uid() = id);
 
 -- Для таблицы user_profiles
 DROP POLICY IF EXISTS "Users can insert own profile" ON user_profiles;
+CREATE POLICY "Users can insert own profile" ON user_profiles 
+FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Убедитесь, что RLS включен
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
